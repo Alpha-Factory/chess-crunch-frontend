@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -40,14 +39,64 @@
 
         .controls {
             display: flex;
-            align-items: center;
-            gap: .5rem;
-            margin-top: 1rem
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .controls label {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        .controls input[type="number"], .controls select, .controls input[type="range"] {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .controls button {
+            padding: 0.75rem;
+            font-size: 1rem;
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .controls button:hover {
+            background-color: #2563eb;
         }
 
         #status {
             margin-top: 1rem;
             font-size: 1.125rem
+        }
+        .container {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .slider-group label {
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+        }
+        .slider-group input[type="range"] {
+            flex: 3;
+        }
+        #advantageValue {
+            width: 2rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -55,25 +104,43 @@
 <body>
     <h1>Chess Arena</h1>
 
-    <div class="controls">
-        <label for="elo">Bot Elo:</label>
-        <select id="elo">
-            <option>200</option>
-            <option>400</option>
-            <option>600</option>
-            <option>800</option>
-            <option>1000</option>
-            <option selected>1200</option>
-            <option>1400</option>
-            <option>1600</option>
-            <option>1800</option>
-            <option>2000</option>
-            <option>2200</option>
-            <option>2400</option>
-            <option>2500</option>
-            <option>3000</option>
+    <div class="container">
+        <div class="controls">
+        <label for="playerColor">Color:</label>
+        <select id="playerColor">
+            <option value="white">White</option>
+            <option value="black">Black</option>
+            <option value="random">Random</option>
         </select>
-        <button id="start-btn">Start</button>
+        <div class="slider-group">
+            <label for="advantage">Large Disadvantage</label>
+            <input type="range" id="advantage" min="-25" max="25" value="0">
+            <label for="advantage">Large Advantage</label>
+            <span id="advantageValue">0</span>
+        </div>
+        <label for="elo">Bot Elo:</label>
+        <select id="elo">
+            <option value="200">Basically just random</option>
+            <option value="400">Extremely easy</option>
+            <option value="600">Very easy</option>
+            <option value="800">Easy</option>
+            <option value="1100" selected>Moderate</option>
+            <option value="1400">Hard</option>
+            <option value="1600">Very hard</option>
+            <option value="1800">Extremely hard</option>
+            <option value="2000">Candidate Master</option>
+            <option value="2200">International Master</option>
+            <option value="2500">Grandmaster</option>
+            <option value="3000">Impossible</option>
+        </select>
+        <label for="minPlies">Min Plies:</label>
+        <input type="range" id="minPlies" min="0" max="60" value="10">
+        <span id="minPliesValue">10</span>
+        <label for="maxPlies">Max Plies:</label>
+        <input type="range" id="maxPlies" min="70" max="200" value="90">
+        <span id="maxPliesValue">90</span>
+        <button id="generateBtn">Start</button>
+        </div>
     </div>
 
     <div id="game" style="display: none;">
@@ -82,17 +149,20 @@
     </div>
 
     <script>
+    document.addEventListener('DOMContentLoaded', () => {
         /* --------------------------------------------------
            Helper maps (depth, skill, randomness)
         -------------------------------------------------- */
+        // track selected player color globally
+        let playerColor = 'white';
         function depthForElo(elo) {
             // console.log('Elo:', elo);
             if (elo < 300) return 1;
             if (elo < 500) return 2;
-            if (elo < 700) return 3;
-            if (elo < 900) return 4;
-            if (elo < 1100) return 5;
-            return 6; // 1100–1319
+            if (elo < 700) return 2;  // weakened from 3
+            if (elo < 900) return 3;  // weakened from 4
+            if (elo < 1100) return 4; // weakened from 5
+            return 5; // weakened from 6 (1100–1319)
         }
 
         function skillForElo(elo) {
@@ -100,17 +170,19 @@
             // Stockfish Skill Level 0‑20 (0 weakest)
             if (elo < 300) return 0;
             if (elo < 500) return 1;
-            if (elo < 700) return 3;
-            if (elo < 900) return 5;
-            if (elo < 1100) return 8;
-            return 12; // 1100–1319
+            if (elo < 700) return 2;  // weakened from 3
+            if (elo < 900) return 4;  // weakened from 5
+            if (elo < 1100) return 6; // weakened from 8
+            return 10; // weakened from 12 (1100–1319)
         }
 
         function randomChanceForElo(elo) {
             // console.log('Elo:', elo);
             if (elo < 300) return 0.8;  // 60 % random
-            if (elo < 500) return 0.4;  // 30 %
-            return 0; // ≥500 – deterministic
+            if (elo < 500) return 0.4;   // 30 %
+            if (elo < 700) return 0.2;   // 10 % randomness for <700
+            if (elo < 900) return 0.1;   // slight randomness for <900
+            return 0; // ≥900 – deterministic
         }
 
         /* --------------------------------------------------
@@ -118,6 +190,16 @@
         -------------------------------------------------- */
         document.getElementById('board').style.display = 'none';
         document.getElementById('status').style.display = 'none';
+        // slider display update
+        document.getElementById('minPlies').addEventListener('input', e => {
+            document.getElementById('minPliesValue').textContent = e.target.value;
+        });
+        document.getElementById('maxPlies').addEventListener('input', e => {
+            document.getElementById('maxPliesValue').textContent = e.target.value;
+        });
+        document.getElementById('advantage').addEventListener('input', e => {
+            document.getElementById('advantageValue').textContent = e.target.value;
+        });
 
         /* --------------------------------------------------
            Globals
@@ -134,9 +216,51 @@
         }
 
         /* --------------------------------------------------
-           Boot engine
+           Inline form submission and API integration
         -------------------------------------------------- */
-        document.getElementById('start-btn').addEventListener('click', () => {
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            // set global player color (handle random)
+            const selected = document.getElementById('playerColor').value;
+            if (selected === 'random') {
+                playerColor = Math.random() < 0.5 ? 'white' : 'black';
+            } else {
+                playerColor = selected;
+            }
+            const elo = parseInt(document.getElementById('elo').value, 10);
+            const minPlies = parseInt(document.getElementById('minPlies').value, 10);
+            const maxPlies = parseInt(document.getElementById('maxPlies').value, 10);
+            // calculate signed target from slider (-25 to +25) * 100, flip sign if playing black
+            const adv = parseInt(document.getElementById('advantage').value, 10);
+            let target = adv * 100 * (playerColor === 'white' ? 1 : -1);
+
+            // hide controls, show board
+            document.querySelector('.controls').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('board').style.display = 'block';
+            document.getElementById('status').style.display = 'block';
+            document.getElementById('status').textContent = 'Generating board…';
+
+            try {
+                // stream positions via WebSocket
+                const sock = new WebSocket('ws://localhost:8000/ws/generate_board');
+                sock.onopen = () => sock.send(JSON.stringify({ target, elo, min_plies: minPlies, max_plies: maxPlies }));
+                let first = true;
+                sock.onmessage = e => {
+                    const { fen } = JSON.parse(e.data);
+                    chess.load(fen);
+                    if (first) { board.orientation(playerColor); first = false; }
+                    board.position(fen, true);
+                    updateStatus();
+                };
+                sock.onclose = () => startGameEngine();
+            } catch (err) {
+                alert('Error streaming board: ' + err.message);
+                console.error(err);
+            }
+        });
+
+        // Function to start the game engine (extracted from original start button logic)
+        function startGameEngine() {
             document.querySelector('.controls').style.display = 'none';
             document.getElementById('game').style.display = 'block';
             document.getElementById('board').style.display = 'block';
@@ -151,7 +275,11 @@
                     hookEngine();
                 })
                 .catch(err => alert('Failed to load Stockfish: ' + err));
-        });
+        }
+
+        /* --------------------------------------------------
+           Boot engine (original logic moved to startGameEngine)
+        -------------------------------------------------- */
 
         /* --------------------------------------------------
            Handle engine output
@@ -164,7 +292,9 @@
                 if (line === 'uciok') {
                     applyStrength();
                     ready = true;
-                    if (chess.turn() === 'b') moveEngine();
+                    // engine moves when it's engine's turn (opposite of player's)
+                    const engineTurn = playerColor === 'white' ? 'b' : 'w';
+                    if (chess.turn() === engineTurn) moveEngine();
                     return;
                 }
 
@@ -223,9 +353,6 @@
             onSnapEnd: () => board.position(chess.fen())
         });
 
-        // Optional FEN input
-        const fen = prompt('Enter FEN (blank for start):', '');
-        if (fen?.trim()) try { chess.load(fen.trim()); board.position(fen.trim()); } catch { }
         updateStatus();
 
         /* --------------------------------------------------
@@ -306,6 +433,7 @@
                             `${turn} to move${chess.in_check() ? `, ${turn} in check!` : ''}`;
 
         }
+    }); // end DOMContentLoaded
     </script>
 </body>
 
