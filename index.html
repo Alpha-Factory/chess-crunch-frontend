@@ -287,9 +287,11 @@
 
             try {
                 // stream positions via WebSocket
+                // user-provided backend tunnel host (e.g. via localtunnel/ngrok)
+                const BACKEND_HOST = 'mychessthing.loca.lt';
                 // use secure WebSocket when served over HTTPS
                 const wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-                const sock = new WebSocket(wsProto + '95.217.47.119:8000/ws/generate_board');
+                const sock = new WebSocket(`${wsProto}${BACKEND_HOST}/ws/generate_board`);
                 sock.onopen = () => sock.send(JSON.stringify({ target, elo, min_plies: minPlies, max_plies: maxPlies }));
                 let first = true;
                 sock.onmessage = e => {
