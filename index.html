@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Chess Arena – Multi‑Weakening</title>
+    <title>a chess thing i made</title>
 
     <!-- libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous"></script>
@@ -102,25 +102,26 @@
 </head>
 
 <body>
-    <h1>Chess Arena</h1>
+    <h1>a chess thing i made</h1>
 
     <div class="container">
         <div class="controls">
-        <label for="playerColor">Color:</label>
+        <label for="playerColor">Colour:</label>
         <select id="playerColor">
             <option value="white">White</option>
             <option value="black">Black</option>
-            <option value="random">Random</option>
+            <option value="random" selected>Random</option>
         </select>
+        <label for="slider-group">I want to start with a(n):</label>
         <div class="slider-group">
-            <label for="advantage">Large Disadvantage</label>
+            <label for="advantage">disadvantage</label>
             <input type="range" id="advantage" min="-25" max="25" value="0">
-            <label for="advantage">Large Advantage</label>
-            <span id="advantageValue">0</span>
+            <label for="advantage">advantage</label>
+            <!-- <span id="advantageValue">0</span> -->
         </div>
         <label for="elo">Bot Difficulty:</label>
         <select id="elo">
-            <option value="200">Basically just random</option>
+            <option value="200">Shit</option>
             <option value="400">Extremely easy</option>
             <option value="600">Very easy</option>
             <option value="800">Easy</option>
@@ -131,14 +132,18 @@
             <option value="2000">Candidate Master</option>
             <option value="2200">International Master</option>
             <option value="2500">Grandmaster</option>
-            <option value="3000">Impossible</option>
+            <option value="3000">God</option>
         </select>
-        <label for="minPlies">Min Plies:</label>
-        <input type="range" id="minPlies" min="0" max="60" value="10">
-        <span id="minPliesValue">10</span>
-        <label for="maxPlies">Max Plies:</label>
-        <input type="range" id="maxPlies" min="70" max="200" value="90">
-        <span id="maxPliesValue">90</span>
+        <label for="minPlies">Min Turns:</label>
+        <div class="slider-group">
+            <input type="range" id="minPlies" min="0" max="60" value="10">
+            <span id="minPliesValue">10</span>
+        </div>
+        <label for="maxPlies">Max Turns:</label>
+        <div class="slider-group">
+            <input type="range" id="maxPlies" min="70" max="200" value="90">
+            <span id="maxPliesValue">90</span>
+        </div>
         <button id="generateBtn">Start</button>
         </div>
     </div>
@@ -200,6 +205,12 @@
         document.getElementById('advantage').addEventListener('input', e => {
             document.getElementById('advantageValue').textContent = e.target.value;
         });
+        // initialize slider display and thumb positions
+        ['minPlies', 'maxPlies', 'advantage'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = el.defaultValue;
+            el.dispatchEvent(new Event('input'));
+        });
 
         /* --------------------------------------------------
            Globals
@@ -233,7 +244,8 @@
             const adv = parseInt(document.getElementById('advantage').value, 10);
             let target = adv * 100 * (playerColor === 'white' ? 1 : -1);
 
-            // hide controls, show board
+            // hide controls container and show board
+            document.querySelector('.container').style.display = 'none';
             document.querySelector('.controls').style.display = 'none';
             document.getElementById('game').style.display = 'block';
             document.getElementById('board').style.display = 'block';
@@ -242,7 +254,7 @@
 
             try {
                 // stream positions via WebSocket
-                const sock = new WebSocket('ws://localhost:8000/ws/generate_board');
+                const sock = new WebSocket('ws://95.217.47.119:8000/ws/generate_board');
                 sock.onopen = () => sock.send(JSON.stringify({ target, elo, min_plies: minPlies, max_plies: maxPlies }));
                 let first = true;
                 sock.onmessage = e => {
@@ -250,10 +262,10 @@
                     chess.load(fen);
                     if (first) { board.orientation(playerColor); first = false; }
                     board.position(fen, true);
-                    updateStatus();
+                    // status remains 'loading...' while streaming
                 };
                 sock.onclose = () => {
-                    // show who to move next when loading ends
+                    // after streaming, show next turn and start engine
                     const turnMsg = chess.turn() === 'w' ? 'White to move' : 'Black to move';
                     document.getElementById('status').textContent = turnMsg;
                     startGameEngine();
@@ -270,9 +282,7 @@
             document.getElementById('game').style.display = 'block';
             document.getElementById('board').style.display = 'block';
             document.getElementById('status').style.display = 'block';
-            // show whose turn once engine is ready
-            const turnMsg = chess.turn() === 'w' ? 'White to move' : 'Black to move';
-            document.getElementById('status').textContent = turnMsg;
+            // status remains as set by onclose; engine hook will update once ready
 
             fetch(STOCKFISH_CDN, { mode: 'cors' })
                 .then(r => r.text())
@@ -327,14 +337,17 @@
             const skill = currentElo >= 1320 ? 20 : skillForElo(currentElo);
             sfSend('setoption name Skill Level value ' + skill);
 
-            if (currentElo >= 1320) {
-                // Attempt Elo limiter – ignored by this build but harmless
+            if (currentElo >= 3000) {
+                // Full engine strength
+                sfSend('setoption name UCI_LimitStrength value false');
+                s.textContent = 'Full engine strength';
+            } else if (currentElo >= 1320) {
+                // Limit engine to target Elo
                 sfSend('setoption name UCI_LimitStrength value true');
                 sfSend('setoption name UCI_Elo value ' + currentElo);
-                // s.textContent = `Engine limited to ~${currentElo} Elo (skill 20).`;
             } else {
+                // lower Elo: skill+depth caps
                 sfSend('setoption name UCI_LimitStrength value false');
-                // s.textContent = `Depth‑capped & skill‑capped for ~${currentElo} Elo.`;
             }
             sfSend('isready');
         }
