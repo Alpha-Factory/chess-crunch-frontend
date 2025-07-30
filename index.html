@@ -27,7 +27,15 @@
 
         #board {
             width: 400px;
-            margin: 1rem auto
+            margin: 1rem auto;
+            /* Prevent scrolling/panning on mobile when dragging pieces */
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         .controls {
@@ -221,6 +229,29 @@
         updateStatus();
 
         /* --------------------------------------------------
+           Mobile touch handling - prevent page scrolling on board
+        -------------------------------------------------- */
+        function preventMobileScrolling() {
+            const boardElement = document.getElementById('board');
+            
+            // Prevent default touch behaviors on the board
+            boardElement.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            boardElement.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            boardElement.addEventListener('touchend', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        // Apply mobile touch handling after a short delay to ensure board is rendered
+        setTimeout(preventMobileScrolling, 100);
+
+        /* --------------------------------------------------
            Drag callbacks
         -------------------------------------------------- */
         function onDragStart(src, piece) {
@@ -268,9 +299,12 @@
         function updateStatus() {
             const s = document.getElementById('status');
             const turn = chess.turn() === 'b' ? 'Black' : 'White';
-            s.textContent = chess.in_checkmate() ? `Game over – ${turn} is checkmated.`
-                : chess.in_stalemate() || chess.in_draw() ? 'Game over – draw.'
-                    : `${turn} to move${chess.in_check() ? `, ${turn} in check!` : ''}`;
+            s.textContent = chess.in_checkmate() ? `Game over – ${turn} is checkmated.` :
+                chess.in_stalemate() ? 'Game over – stalemate.' :
+                    chess.insufficient_material() ? 'Game over – insufficient material (draw).' :
+                        chess.in_draw() ? 'Game over – draw.' :
+                            `${turn} to move${chess.in_check() ? `, ${turn} in check!` : ''}`;
+
         }
     </script>
 </body>
