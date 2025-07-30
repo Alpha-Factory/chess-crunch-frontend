@@ -118,7 +118,7 @@
             <label for="advantage">Large Advantage</label>
             <span id="advantageValue">0</span>
         </div>
-        <label for="elo">Bot Elo:</label>
+        <label for="elo">Bot Difficulty:</label>
         <select id="elo">
             <option value="200">Basically just random</option>
             <option value="400">Extremely easy</option>
@@ -238,7 +238,7 @@
             document.getElementById('game').style.display = 'block';
             document.getElementById('board').style.display = 'block';
             document.getElementById('status').style.display = 'block';
-            document.getElementById('status').textContent = 'Generating board…';
+            document.getElementById('status').textContent = 'loading...';
 
             try {
                 // stream positions via WebSocket
@@ -252,7 +252,12 @@
                     board.position(fen, true);
                     updateStatus();
                 };
-                sock.onclose = () => startGameEngine();
+                sock.onclose = () => {
+                    // show who to move next when loading ends
+                    const turnMsg = chess.turn() === 'w' ? 'White to move' : 'Black to move';
+                    document.getElementById('status').textContent = turnMsg;
+                    startGameEngine();
+                };
             } catch (err) {
                 alert('Error streaming board: ' + err.message);
                 console.error(err);
@@ -265,7 +270,9 @@
             document.getElementById('game').style.display = 'block';
             document.getElementById('board').style.display = 'block';
             document.getElementById('status').style.display = 'block';
-            document.getElementById('status').textContent = 'Loading engine…';
+            // show whose turn once engine is ready
+            const turnMsg = chess.turn() === 'w' ? 'White to move' : 'Black to move';
+            document.getElementById('status').textContent = turnMsg;
 
             fetch(STOCKFISH_CDN, { mode: 'cors' })
                 .then(r => r.text())
@@ -324,10 +331,10 @@
                 // Attempt Elo limiter – ignored by this build but harmless
                 sfSend('setoption name UCI_LimitStrength value true');
                 sfSend('setoption name UCI_Elo value ' + currentElo);
-                s.textContent = `Engine limited to ~${currentElo} Elo (skill 20).`;
+                // s.textContent = `Engine limited to ~${currentElo} Elo (skill 20).`;
             } else {
                 sfSend('setoption name UCI_LimitStrength value false');
-                s.textContent = `Depth‑capped & skill‑capped for ~${currentElo} Elo.`;
+                // s.textContent = `Depth‑capped & skill‑capped for ~${currentElo} Elo.`;
             }
             sfSend('isready');
         }
