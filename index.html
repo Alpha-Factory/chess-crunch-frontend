@@ -162,12 +162,12 @@
         </select>
         <label for="minPlies">Min Turns:</label>
         <div class="slider-group">
-            <input type="range" id="minPlies" min="0" max="60" value="10">
+            <input type="range" id="minPlies" min="0" max="100" value="10">
             <span id="minPliesValue">10</span>
         </div>
         <label for="maxPlies">Max Turns:</label>
         <div class="slider-group">
-            <input type="range" id="maxPlies" min="70" max="200" value="90">
+            <input type="range" id="maxPlies" min="30" max="200" value="90">
             <span id="maxPliesValue">90</span>
         </div>
         <button id="generateBtn">Start</button>
@@ -235,9 +235,6 @@
         document.getElementById('maxPlies').addEventListener('input', e => {
             document.getElementById('maxPliesValue').textContent = e.target.value;
         });
-        document.getElementById('advantage').addEventListener('input', e => {
-            document.getElementById('advantageValue').textContent = e.target.value;
-        });
         // initialize slider display and thumb positions
         ['minPlies', 'maxPlies', 'advantage'].forEach(id => {
             const el = document.getElementById(id);
@@ -273,6 +270,13 @@
             const elo = parseInt(document.getElementById('elo').value, 10);
             const minPlies = parseInt(document.getElementById('minPlies').value, 10);
             const maxPlies = parseInt(document.getElementById('maxPlies').value, 10);
+            
+            // Validate min/max turns
+            if (minPlies > maxPlies) {
+                alert('Min turns cannot be greater than max turns!');
+                return;
+            }
+            
             // calculate signed target from slider (-25 to +25) * 100, flip sign if playing black
             const adv = parseInt(document.getElementById('advantage').value, 10);
             let target = adv * 100 * (playerColor === 'white' ? 1 : -1);
@@ -288,6 +292,7 @@
             try {
                 // stream positions via WebSocket
                 // user-provided backend tunnel host (e.g. via localtunnel/ngrok)
+                // const BACKEND_HOST = 'localhost:8000';
                 const BACKEND_HOST = 'mychessthing.loca.lt';
                 // use secure WebSocket when served over HTTPS
                 const wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
