@@ -13,15 +13,255 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" crossorigin="anonymous"></script>
 
     <style>
+        :root {
+            --bg: #e6e6e6;
+            --card-bg: #fefefe;
+            --border: #141414;
+            --heading: #111;
+            --text: #222;
+            --accent: #3b3b3b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, sans-serif;
-            background: #f3f4f6;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
             margin: 0;
-            padding: 2rem 1rem;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #1f2937
+            color: var(--text);
+        }
+
+        .app-wrapper {
+            width: min(90vw, 560px);
+            margin: 3.5rem auto 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .brand {
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            font-weight: 700;
+            color: var(--heading);
+            letter-spacing: 0.02em;
+        }
+
+        .brand-logo {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            border: 3px solid var(--border);
+            padding: 0.35rem;
+            background: var(--card-bg);
+        }
+
+        .brand-text {
+            font-size: 1.1rem;
+            text-transform: lowercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2.25rem, 4vw, 2.75rem);
+            color: var(--heading);
+            text-align: center;
+        }
+
+        .setup-card {
+            width: 100%;
+            padding: 2.75rem clamp(1.5rem, 5vw, 3.5rem);
+            border-radius: 24px;
+            border: 3px solid var(--border);
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            box-shadow: 0 32px 55px rgba(0, 0, 0, 0.18);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .control-group label {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.85rem;
+        }
+
+        .choice-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .choice-row select {
+            flex: 1;
+        }
+
+        .colour-icons {
+            display: flex;
+            gap: 0.35rem;
+            align-items: center;
+        }
+
+        .colour-icons span {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            font-size: 1.25rem;
+        }
+
+        select,
+        .controls input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            background: #f9f9f9;
+        }
+
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-track {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.85rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: #f8f8f8;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: #1f1f1f;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .toggle-summary {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--accent);
+            letter-spacing: 0.04em;
+        }
+
+        .toggle-summary .divider {
+            opacity: 0.4;
+        }
+
+        input[type="range"] {
+            background: linear-gradient(90deg, #111 0%, #555 100%);
+            height: 6px;
+            border-radius: 999px;
+            padding: 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .range-output {
+            font-weight: 700;
+            text-align: right;
+            letter-spacing: 0.05em;
+        }
+
+        .start-button {
+            margin-top: 0.5rem;
+            align-self: center;
+            padding: 0.95rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-radius: 14px;
+            border: 3px solid var(--border);
+            background: linear-gradient(180deg, #f5f5f5 0%, #bdbdbd 100%);
+            color: var(--heading);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .start-button:active {
+            transform: translateY(1px);
+            box-shadow: none;
         }
 
         #board {
@@ -37,66 +277,9 @@
             user-select: none;
         }
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .controls label {
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-        }
-        .controls input[type="number"], .controls select, .controls input[type="range"] {
-            width: 100%;
-            padding: 0.5rem;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .controls button {
-            padding: 0.75rem;
-            font-size: 1rem;
-            background-color: #3b82f6;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .controls button:hover {
-            background-color: #2563eb;
-        }
-
         #status {
             margin-top: 1rem;
             font-size: 1.125rem
-        }
-        .container {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            width: 100%;
-            max-width: 600px;
-        }
-        .slider-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .slider-group label {
-            font-weight: bold;
-            flex: 1;
-            text-align: center;
-        }
-        .slider-group input[type="range"] {
-            flex: 3;
-        }
-        #advantageValue {
-            width: 2rem;
-            text-align: center;
         }
         /* Modal styles */
         .modal {
@@ -128,49 +311,77 @@
 </head>
 
 <body>
-    <h1>a chess thing i made</h1>
+    <div class="app-wrapper">
+        <div class="brand">
+            <img class="brand-logo" src="assets/chesscrunch-logo.svg" alt="ChessCrunch logo">
+            <span class="brand-text">chesscrunch.com</span>
+        </div>
+        <h1>Game Setup</h1>
 
-    <div class="container">
-        <div class="controls">
-        <label for="playerColor">Colour:</label>
-        <select id="playerColor">
-            <option value="white">White</option>
-            <option value="black">Black</option>
-            <option value="random" selected>Random</option>
-        </select>
-        <label for="slider-group">I want to start with a(n):</label>
-        <div class="slider-group">
-            <label for="advantage">disadvantage</label>
-            <input type="range" id="advantage" min="-12" max="12" value="0">
-            <label for="advantage">advantage</label>
-            <!-- <span id="advantageValue">0</span> -->
-        </div>
-        <label for="elo">Bot Difficulty:</label>
-        <select id="elo">
-            <option value="200">Shit</option>
-            <option value="400">Extremely easy</option>
-            <option value="600">Very easy</option>
-            <option value="800">Easy</option>
-            <option value="1100" selected>Moderate</option>
-            <option value="1400">Hard</option>
-            <option value="1600">Very hard</option>
-            <option value="1800">Extremely hard</option>
-            <option value="2000">Candidate Master</option>
-            <option value="2200">International Master</option>
-            <option value="2500">Grandmaster</option>
-            <option value="3000">God</option>
-        </select>
-        <label for="minPlies">Min Turns:</label>
-        <div class="slider-group">
-            <input type="range" id="minPlies" min="0" max="100" value="10">
-            <span id="minPliesValue">10</span>
-        </div>
-        <label for="maxPlies">Max Turns:</label>
-        <div class="slider-group">
-            <input type="range" id="maxPlies" min="30" max="200" value="90">
-            <span id="maxPliesValue">90</span>
-        </div>
-        <button id="generateBtn">Start</button>
+        <div class="setup-card">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="playerColor">Colour</label>
+                    <div class="choice-row">
+                        <select id="playerColor">
+                            <option value="white">White</option>
+                            <option value="black">Black</option>
+                            <option value="random" selected>Random</option>
+                        </select>
+                        <div class="colour-icons" aria-hidden="true">
+                            <span>♔</span>
+                            <span>♕</span>
+                            <span>♚</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="advantage">Starting position</label>
+                    <div class="slider-track">
+                        <input type="range" id="advantage" min="-12" max="12" value="0">
+                        <div class="slider-labels">
+                            <span>Disadvantage</span>
+                            <span>Advantage</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="elo">Bot difficulty</label>
+                    <select id="elo">
+                        <option value="200">Shit</option>
+                        <option value="400">Extremely easy</option>
+                        <option value="600">Very easy</option>
+                        <option value="800">Easy</option>
+                        <option value="1100" selected>Moderate</option>
+                        <option value="1400">Hard</option>
+                        <option value="1600">Very hard</option>
+                        <option value="1800">Extremely hard</option>
+                        <option value="2000">Candidate Master</option>
+                        <option value="2200">International Master</option>
+                        <option value="2500">Grandmaster</option>
+                        <option value="3000">God</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="minPlies">Game state</label>
+                    <div class="toggle-group" role="radiogroup">
+                        <button type="button" class="toggle-btn active" data-min="16" data-max="60" data-label="Mid-game">Mid-game</button>
+                        <button type="button" class="toggle-btn" data-min="60" data-max="120" data-label="Late-game">Late-game</button>
+                    </div>
+                    <div class="toggle-summary">
+                        <span id="minPliesValue">Mid-game</span>
+                        <span class="divider">•</span>
+                        <span id="maxPliesValue">16–60 moves</span>
+                    </div>
+                    <input type="hidden" id="minPlies" value="16">
+                    <input type="hidden" id="maxPlies" value="60">
+                </div>
+            </div>
+
+            <button id="generateBtn" class="start-button">Start Game</button>
         </div>
     </div>
     <!-- Error modal -->
@@ -228,19 +439,26 @@
         -------------------------------------------------- */
         document.getElementById('board').style.display = 'none';
         document.getElementById('status').style.display = 'none';
-        // slider display update
-        document.getElementById('minPlies').addEventListener('input', e => {
-            document.getElementById('minPliesValue').textContent = e.target.value;
-        });
-        document.getElementById('maxPlies').addEventListener('input', e => {
-            document.getElementById('maxPliesValue').textContent = e.target.value;
-        });
-        // initialize slider display and thumb positions
-        ['minPlies', 'maxPlies', 'advantage'].forEach(id => {
-            const el = document.getElementById(id);
-            el.value = el.defaultValue;
-            el.dispatchEvent(new Event('input'));
-        });
+        const minPliesInput = document.getElementById('minPlies');
+        const maxPliesInput = document.getElementById('maxPlies');
+        const minPliesValue = document.getElementById('minPliesValue');
+        const maxPliesValue = document.getElementById('maxPliesValue');
+        const gameStateButtons = document.querySelectorAll('.toggle-btn');
+
+        function setGameState(button) {
+            gameStateButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+            minPliesInput.value = button.dataset.min;
+            maxPliesInput.value = button.dataset.max;
+            minPliesValue.textContent = button.dataset.label;
+            maxPliesValue.textContent = `${button.dataset.min}–${button.dataset.max} moves`;
+        }
+
+        gameStateButtons.forEach(btn => btn.addEventListener('click', () => setGameState(btn)));
+        // initialize defaults
+        if (gameStateButtons.length) {
+            setGameState(gameStateButtons[0]);
+        }
+        document.getElementById('advantage').value = document.getElementById('advantage').defaultValue;
 
         /* --------------------------------------------------
            Globals
@@ -282,8 +500,8 @@
             let target = adv * 100 * (playerColor === 'white' ? 1 : -1);
 
             // hide controls container and show board
-            document.querySelector('.container').style.display = 'none';
-            document.querySelector('.controls').style.display = 'none';
+            const setupWrapper = document.querySelector('.app-wrapper');
+            if (setupWrapper) setupWrapper.style.display = 'none';
             document.getElementById('game').style.display = 'block';
             document.getElementById('board').style.display = 'block';
             document.getElementById('status').style.display = 'block';
