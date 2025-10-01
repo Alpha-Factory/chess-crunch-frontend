@@ -108,31 +108,60 @@
             font-size: 0.85rem;
         }
 
-        .choice-row {
+        .colour-choice-grid {
             display: flex;
             gap: 1rem;
-            align-items: center;
+            flex-wrap: wrap;
         }
 
-        .choice-row select {
-            flex: 1;
-        }
-
-        .colour-icons {
+        .colour-choice {
+            flex: 1 1 110px;
             display: flex;
-            gap: 0.35rem;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 0.75rem;
+            background: #f8f8f8;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
-        .colour-icons span {
-            width: 32px;
-            height: 32px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            display: grid;
-            place-items: center;
+        .colour-choice img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            padding: 0.5rem;
+            border-radius: 50%;
             background: #fff;
-            font-size: 1.25rem;
+            border: 3px solid rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .colour-choice.active img {
+            border-color: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+        }
+
+        .colour-choice span {
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .colour-choice.active {
+            background: #1f1f1f;
+            color: #fff;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+        }
+
+        .colour-choice:focus-visible {
+            outline: 3px solid rgba(0, 0, 0, 0.3);
+            outline-offset: 3px;
         }
 
         select,
@@ -313,7 +342,7 @@
 <body>
     <div class="app-wrapper">
         <div class="brand">
-            <img class="brand-logo" src="assets/chesscrunch-logo.svg" alt="ChessCrunch logo">
+            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch logo">
             <span class="brand-text">chesscrunch.com</span>
         </div>
         <h1>Game Setup</h1>
@@ -321,18 +350,20 @@
         <div class="setup-card">
             <div class="controls">
                 <div class="control-group">
-                    <label for="playerColor">Colour</label>
-                    <div class="choice-row">
-                        <select id="playerColor">
-                            <option value="white">White</option>
-                            <option value="black">Black</option>
-                            <option value="random" selected>Random</option>
-                        </select>
-                        <div class="colour-icons" aria-hidden="true">
-                            <span>♔</span>
-                            <span>♕</span>
-                            <span>♚</span>
-                        </div>
+                    <label for="playerColourRandom">Colour</label>
+                    <div class="colour-choice-grid" role="radiogroup" aria-label="Choose your side">
+                        <button type="button" class="colour-choice" data-value="white" aria-pressed="false">
+                            <img src="assets/white.png" alt="Play as white">
+                            <span>White</span>
+                        </button>
+                        <button type="button" class="colour-choice active" data-value="random" id="playerColourRandom" aria-pressed="true">
+                            <img src="assets/random.png" alt="Random side icon">
+                            <span>Random</span>
+                        </button>
+                        <button type="button" class="colour-choice" data-value="black" aria-pressed="false">
+                            <img src="assets/black.png" alt="Play as black">
+                            <span>Black</span>
+                        </button>
                     </div>
                 </div>
 
@@ -439,11 +470,13 @@
         -------------------------------------------------- */
         document.getElementById('board').style.display = 'none';
         document.getElementById('status').style.display = 'none';
-        const minPliesInput = document.getElementById('minPlies');
-        const maxPliesInput = document.getElementById('maxPlies');
-        const minPliesValue = document.getElementById('minPliesValue');
-        const maxPliesValue = document.getElementById('maxPliesValue');
-        const gameStateButtons = document.querySelectorAll('.toggle-btn');
+    const minPliesInput = document.getElementById('minPlies');
+    const maxPliesInput = document.getElementById('maxPlies');
+    const minPliesValue = document.getElementById('minPliesValue');
+    const maxPliesValue = document.getElementById('maxPliesValue');
+    const gameStateButtons = document.querySelectorAll('.toggle-btn');
+    const colourButtons = document.querySelectorAll('.colour-choice');
+    let colourSelection = 'random';
 
         function setGameState(button) {
             gameStateButtons.forEach(btn => btn.classList.toggle('active', btn === button));
@@ -454,9 +487,23 @@
         }
 
         gameStateButtons.forEach(btn => btn.addEventListener('click', () => setGameState(btn)));
+
+        function setColourSelection(value) {
+            colourSelection = value;
+            colourButtons.forEach(btn => {
+                const isActive = btn.dataset.value === value;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-pressed', isActive.toString());
+            });
+        }
+
+        colourButtons.forEach(btn => btn.addEventListener('click', () => setColourSelection(btn.dataset.value)));
         // initialize defaults
         if (gameStateButtons.length) {
             setGameState(gameStateButtons[0]);
+        }
+        if (colourButtons.length) {
+            setColourSelection('random');
         }
         document.getElementById('advantage').value = document.getElementById('advantage').defaultValue;
 
@@ -479,7 +526,7 @@
         -------------------------------------------------- */
         document.getElementById('generateBtn').addEventListener('click', async () => {
             // set global player color (handle random)
-            const selected = document.getElementById('playerColor').value;
+            const selected = colourSelection;
             if (selected === 'random') {
                 playerColor = Math.random() < 0.5 ? 'white' : 'black';
             } else {
