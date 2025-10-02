@@ -39,35 +39,24 @@
 
         .app-wrapper {
             width: min(90vw, 560px);
-            margin: 3.5rem auto 2rem;
+            margin: 2.5rem auto 1.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2rem;
+            gap: 1rem;
         }
 
         .brand {
-            align-self: stretch;
+            align-self: center;
             display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            font-weight: 700;
-            color: var(--heading);
-            letter-spacing: 0.02em;
+            justify-content: center;
+            margin: 0.1rem 0;
         }
 
         .brand-logo {
-            width: 54px;
-            height: 54px;
-            border-radius: 14px;
-            border: 3px solid var(--border);
-            padding: 0.35rem;
-            background: var(--card-bg);
-        }
-
-        .brand-text {
-            font-size: 1.1rem;
-            text-transform: lowercase;
+            width: clamp(270px, 67vw, 360px);
+            height: auto;
+            display: block;
         }
 
         h1 {
@@ -196,6 +185,50 @@
             text-transform: uppercase;
         }
 
+        .history-controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .history-btn {
+            padding: 0.6rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: #f2f2f2;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .history-btn:not(:disabled):hover {
+            background: #fff;
+            transform: translateY(-1px);
+        }
+
+        .history-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .history-indicator {
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            font-size: 0.9rem;
+        }
+
+        .loading-message {
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            font-size: 1rem;
+            text-align: center;
+        }
+
         .toggle-group {
             display: flex;
             gap: 0.75rem;
@@ -317,9 +350,18 @@
             box-shadow: none;
         }
 
+        #game {
+            display: none;
+            width: min(90vw, 560px);
+            margin: 2.5rem auto 1.5rem;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
         #board {
-            width: 400px;
-            margin: 1rem auto;
+            width: min(520px, 90vw);
+            margin: 0;
             /* Prevent scrolling/panning on mobile when dragging pieces */
             touch-action: none;
             -webkit-touch-callout: none;
@@ -331,8 +373,8 @@
         }
 
         #status {
-            margin-top: 1rem;
-            font-size: 1.125rem
+            font-size: 1.125rem;
+            text-align: center;
         }
         /* Modal styles */
         .modal {
@@ -366,8 +408,7 @@
 <body>
     <div class="app-wrapper">
         <div class="brand">
-            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch logo">
-            <span class="brand-text">chesscrunch.com</span>
+            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch">
         </div>
         <h1>Game Setup</h1>
 
@@ -447,8 +488,17 @@
         </div>
     </div>
 
-    <div id="game" style="display: none;">
+    <div id="game">
+        <div class="brand" id="inGameBrand" style="display: none;">
+            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch">
+        </div>
         <div id="board" style="display: none;"></div>
+        <p id="streamingMessage" class="loading-message" style="display: none;">Streaming positions... please hang tight</p>
+        <div class="history-controls" id="historyControls" style="display: none;">
+            <button type="button" class="history-btn" id="historyPrev" disabled>← Back</button>
+            <span class="history-indicator" id="historyIndicator">Move 0 / 0</span>
+            <button type="button" class="history-btn" id="historyNext" disabled>Forward →</button>
+        </div>
         <p id="status" style="display: none;"></p>
     </div>
 
@@ -492,14 +542,23 @@
         /* --------------------------------------------------
            DOM prep – hide board until started
         -------------------------------------------------- */
-        document.getElementById('board').style.display = 'none';
-        document.getElementById('status').style.display = 'none';
+    document.getElementById('board').style.display = 'none';
+    document.getElementById('status').style.display = 'none';
+    const inGameBrand = document.getElementById('inGameBrand');
+    const historyWrapper = document.getElementById('historyControls');
+    const streamingMessage = document.getElementById('streamingMessage');
+    const historyPrevBtn = document.getElementById('historyPrev');
+    const historyNextBtn = document.getElementById('historyNext');
+    const historyIndicator = document.getElementById('historyIndicator');
     const minPliesInput = document.getElementById('minPlies');
     const maxPliesInput = document.getElementById('maxPlies');
     const minPliesValue = document.getElementById('minPliesValue');
     const maxPliesValue = document.getElementById('maxPliesValue');
     const gameStateButtons = document.querySelectorAll('.toggle-btn');
     const colourButtons = document.querySelectorAll('.colour-choice');
+    const history = [];
+    let isStreaming = false;
+    let historyIndex = 0;
     let colourSelection = 'random';
 
         function setGameState(button) {
@@ -511,6 +570,38 @@
         }
 
         gameStateButtons.forEach(btn => btn.addEventListener('click', () => setGameState(btn)));
+
+        function updateHistoryControls() {
+            if (!historyPrevBtn || !historyNextBtn || !historyIndicator) return;
+            const total = history.length;
+            historyPrevBtn.disabled = total <= 1 || historyIndex <= 0;
+            historyNextBtn.disabled = total === 0 || historyIndex >= total - 1;
+            historyIndicator.textContent = total ? `Move ${historyIndex + 1} / ${total}` : 'Move 0 / 0';
+        }
+
+        function resetHistory(initialFen) {
+            history.length = 0;
+            historyIndex = 0;
+            if (initialFen) {
+                history.push(initialFen);
+                historyIndex = history.length - 1;
+            }
+            updateHistoryControls();
+        }
+
+        function pushHistory(fen) {
+            if (!fen) {
+                updateHistoryControls();
+                return;
+            }
+            const lastFen = history[history.length - 1];
+            if (lastFen !== fen) {
+                history.push(fen);
+            }
+            historyIndex = history.length - 1;
+            updateHistoryControls();
+            updateStatus();
+        }
 
         function setColourSelection(value) {
             colourSelection = value;
@@ -549,6 +640,7 @@
            Inline form submission and API integration
         -------------------------------------------------- */
         document.getElementById('generateBtn').addEventListener('click', async () => {
+            isStreaming = true;
             // set global player color (handle random)
             const selected = colourSelection;
             if (selected === 'random') {
@@ -570,19 +662,35 @@
             const adv = parseInt(document.getElementById('advantage').value, 10);
             let target = adv * 100 * (playerColor === 'white' ? 1 : -1);
 
+            chess.reset();
+            board.orientation(playerColor);
+            board.position(chess.fen(), false);
+            resetHistory(chess.fen());
+
             // hide controls container and show board
             const setupWrapper = document.querySelector('.app-wrapper');
             if (setupWrapper) setupWrapper.style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            document.getElementById('board').style.display = 'block';
-            document.getElementById('status').style.display = 'block';
-            document.getElementById('status').textContent = 'loading...';
+            const gameShell = document.getElementById('game');
+            if (gameShell) gameShell.style.display = 'flex';
+            const boardEl = document.getElementById('board');
+            if (boardEl) boardEl.style.display = 'block';
+            const statusEl = document.getElementById('status');
+            if (statusEl) statusEl.style.display = 'none';
+            if (streamingMessage) {
+                streamingMessage.style.display = 'block';
+                streamingMessage.textContent = 'Streaming positions... please hang tight';
+            }
+            if (historyWrapper) {
+                historyWrapper.style.display = 'none';
+                updateHistoryControls();
+            }
+            if (inGameBrand) inGameBrand.style.display = 'flex';
 
             try {
                 // stream positions via WebSocket
                 // user-provided backend tunnel host (e.g. via localtunnel/ngrok)
                 // const BACKEND_HOST = 'localhost:8000';
-                const BACKEND_HOST = 'mychessthing.loca.lt';
+                const BACKEND_HOST = 'chesscrunch.com';
                 // use secure WebSocket when served over HTTPS
                 const wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
                 const sock = new WebSocket(`${wsProto}${BACKEND_HOST}/ws/generate_board`);
@@ -593,23 +701,27 @@
                     chess.load(fen);
                     if (first) { board.orientation(playerColor); first = false; }
                     board.position(fen, true);
-                    // status remains 'loading...' while streaming
+                    pushHistory(chess.fen());
                 };
                 sock.onclose = () => {
                     // after streaming, show next turn and start engine
-                    const turnMsg = chess.turn() === 'w' ? 'White to move' : 'Black to move';
-                    document.getElementById('status').textContent = turnMsg;
+                    isStreaming = false;
+                    updateStatus();
                     startGameEngine();
                 };
                 sock.onerror = () => {
                     // show error modal and fallback
                     document.getElementById('errorModal').style.display = 'block';
+                    isStreaming = false;
+                    updateStatus();
                     startGameEngine();
                 };
             } catch (err) {
                 console.error(err);
                 // on connection failure, show modal and allow engine-only play
                 document.getElementById('errorModal').style.display = 'block';
+                isStreaming = false;
+                updateStatus();
                 startGameEngine();
             }
         });
@@ -617,9 +729,13 @@
         // Function to start the game engine (extracted from original start button logic)
         function startGameEngine() {
             document.querySelector('.controls').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            document.getElementById('board').style.display = 'block';
-            document.getElementById('status').style.display = 'block';
+            const gameShell = document.getElementById('game');
+            const boardEl = document.getElementById('board');
+            if (gameShell) gameShell.style.display = 'flex';
+            if (boardEl) boardEl.style.display = 'block';
+            if (inGameBrand) inGameBrand.style.display = 'flex';
+            if (streamingMessage) streamingMessage.style.display = isStreaming ? 'block' : 'none';
+            updateStatus();
             // status remains as set by onclose; engine hook will update once ready
 
             fetch(STOCKFISH_CDN, { mode: 'cors' })
@@ -659,7 +775,7 @@
                     const best = line.split(' ')[1];
                     chess.move({ from: best.slice(0, 2), to: best.slice(2, 4), promotion: 'q' });
                     board.position(chess.fen());
-                    updateStatus();
+                    pushHistory(chess.fen());
                 }
             };
             sfSend('uci');
@@ -711,7 +827,29 @@
             onSnapEnd: () => board.position(chess.fen())
         });
 
+        resetHistory(chess.fen());
         updateStatus();
+        updateHistoryControls();
+
+        function showHistoryAt(index) {
+            if (!history.length) return;
+            const boundedIndex = Math.max(0, Math.min(index, history.length - 1));
+            if (boundedIndex === historyIndex) return;
+            historyIndex = boundedIndex;
+            const fen = history[historyIndex];
+            const isLatest = historyIndex === history.length - 1;
+            board.position(fen, true);
+            updateStatus(isLatest ? null : fen);
+            updateHistoryControls();
+        }
+
+        if (historyPrevBtn) {
+            historyPrevBtn.addEventListener('click', () => showHistoryAt(historyIndex - 1));
+        }
+
+        if (historyNextBtn) {
+            historyNextBtn.addEventListener('click', () => showHistoryAt(historyIndex + 1));
+        }
 
         /* --------------------------------------------------
            Mobile touch handling - prevent page scrolling on board
@@ -740,6 +878,7 @@
            Drag callbacks
         -------------------------------------------------- */
         function onDragStart(src, piece) {
+            if (historyIndex !== history.length - 1) return false;
             return !chess.game_over() &&
                 !((chess.turn() === 'w' && piece[0] === 'b') || (chess.turn() === 'b' && piece[0] === 'w'));
         }
@@ -747,7 +886,7 @@
         function onDrop(src, tgt) {
             const mv = chess.move({ from: src, to: tgt, promotion: 'q' });
             if (!mv) return 'snapback';
-            updateStatus();
+            pushHistory(chess.fen());
             setTimeout(moveEngine, 200);
         }
 
@@ -764,7 +903,7 @@
                 const pick = moves[Math.floor(Math.random() * moves.length)];
                 chess.move(pick);
                 board.position(chess.fen());
-                updateStatus();
+                pushHistory(chess.fen());
                 return;
             }
 
@@ -781,15 +920,38 @@
         /* --------------------------------------------------
            UI Status helper
         -------------------------------------------------- */
-        function updateStatus() {
+        function updateStatus(fenOverride = null) {
             const s = document.getElementById('status');
-            const turn = chess.turn() === 'b' ? 'Black' : 'White';
-            s.textContent = chess.in_checkmate() ? `Game over – ${turn} is checkmated.` :
-                chess.in_stalemate() ? 'Game over – stalemate.' :
-                    chess.insufficient_material() ? 'Game over – insufficient material (draw).' :
-                        chess.in_draw() ? 'Game over – draw.' :
-                            `${turn} to move${chess.in_check() ? `, ${turn} in check!` : ''}`;
+            if (!s) return;
+            const context = fenOverride ? new Chess(fenOverride) : chess;
+            const turn = context.turn() === 'b' ? 'Black' : 'White';
+            let text = context.in_checkmate() ? `Game over – ${turn} is checkmated.` :
+                context.in_stalemate() ? 'Game over – stalemate.' :
+                    context.insufficient_material() ? 'Game over – insufficient material (draw).' :
+                        context.in_draw() ? 'Game over – draw.' :
+                            `${turn} to move${context.in_check() ? `, ${turn} in check!` : ''}`;
 
+            const viewingHistory = fenOverride !== null || historyIndex !== history.length - 1;
+            if (viewingHistory && history.length) {
+                text += ` — Viewing move ${historyIndex + 1} of ${history.length} (history view)`;
+            }
+
+            if (isStreaming) {
+                s.style.display = 'none';
+                if (historyWrapper) historyWrapper.style.display = 'none';
+                if (streamingMessage) {
+                    streamingMessage.style.display = 'block';
+                    streamingMessage.textContent = 'Streaming positions... please hang tight';
+                }
+                return;
+            }
+
+            if (streamingMessage) streamingMessage.style.display = 'none';
+            s.style.display = 'block';
+            s.textContent = text;
+            if (historyWrapper) {
+                historyWrapper.style.display = history.length > 1 ? 'flex' : 'none';
+            }
         }
 
         // Close error modal when X clicked
