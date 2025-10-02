@@ -657,6 +657,7 @@
     let colourSelection = 'random';
     let selectedSquare = null;
     let legalMovesForSelection = [];
+    let touchHandlersBound = false;
 
         function setGameState(button) {
             gameStateButtons.forEach(btn => btn.classList.toggle('active', btn === button));
@@ -1016,6 +1017,14 @@
 
         function squareFromElement(element) {
             if (!element) return null;
+
+            if (typeof element.closest === 'function') {
+                const squareEl = element.closest('[data-square]');
+                if (squareEl && boardElement && boardElement.contains(squareEl)) {
+                    return squareEl.dataset.square || null;
+                }
+            }
+
             let current = element;
             while (current && current !== boardElement) {
                 if (current.dataset && current.dataset.square) {
@@ -1033,42 +1042,88 @@
             return null;
         }
 
+        function squareFromCoords(clientX, clientY) {
+            if (!boardElement || typeof clientX !== 'number' || typeof clientY !== 'number') return null;
+            const rect = boardElement.getBoundingClientRect();
+            if (!rect.width || !rect.height) return null;
+            if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+                return null;
+            }
+
+            const xOffset = clientX - rect.left;
+            const yOffset = clientY - rect.top;
+            const squareWidth = rect.width / 8;
+            const squareHeight = rect.height / 8;
+
+            let fileIndex = Math.min(7, Math.max(0, Math.floor(xOffset / squareWidth)));
+            let rankIndex = Math.min(7, Math.max(0, Math.floor(yOffset / squareHeight)));
+            const orientation = typeof board.orientation === 'function' ? board.orientation() : 'white';
+
+            if (orientation === 'white') {
+                rankIndex = 7 - rankIndex;
+            } else {
+                fileIndex = 7 - fileIndex;
+            }
+
+            const files = 'abcdefgh';
+            return `${files[fileIndex]}${rankIndex + 1}`;
+        }
+
+        function squareFromEvent(event) {
+            if (!event) return null;
+            const fromElement = squareFromElement(event.target);
+            if (fromElement) return fromElement;
+            const fromCoords = squareFromCoords(event.clientX, event.clientY);
+            return fromCoords;
+        }
+
+        function canInteractWithBoard() {
+            if (isStreaming || chess.game_over()) {
+                clearHighlights();
+                return false;
+            }
+
+            if (historyIndex !== history.length - 1) {
+                clearHighlights();
+                return false;
+            }
+
+            return true;
+        }
+
+        function handleSquareSelection(square) {
+            if (!square) return;
+
+            if (selectedSquare) {
+                const move = legalMovesForSelection.find(m => m.to === square);
+                if (move) {
+                    handlePlayerMove(selectedSquare, square);
+                    return;
+                }
+
+                const selectedPiece = chess.get(square);
+                if (selectedPiece && selectedPiece.color === chess.turn()) {
+                    highlightMoves(square);
+                    return;
+                }
+
+                clearHighlights();
+                return;
+            }
+
+            const piece = chess.get(square);
+            if (piece && piece.color === chess.turn()) {
+                highlightMoves(square);
+            } else {
+                clearHighlights();
+            }
+        }
+
         if (boardElement) {
             boardElement.addEventListener('click', event => {
-                if (isStreaming || chess.game_over()) {
-                    clearHighlights();
-                    return;
-                }
-
-                if (historyIndex !== history.length - 1) {
-                    clearHighlights();
-                    return;
-                }
-
-                const square = squareFromElement(event.target);
-                if (!square) return;
-
-                if (selectedSquare) {
-                    const move = legalMovesForSelection.find(m => m.to === square);
-                    if (move) {
-                        handlePlayerMove(selectedSquare, square);
-                        return;
-                    }
-                    const selectedPiece = chess.get(square);
-                    if (selectedPiece && selectedPiece.color === chess.turn()) {
-                        highlightMoves(square);
-                        return;
-                    }
-                    clearHighlights();
-                    return;
-                }
-
-                const piece = chess.get(square);
-                if (piece && piece.color === chess.turn()) {
-                    highlightMoves(square);
-                } else {
-                    clearHighlights();
-                }
+                if (!canInteractWithBoard()) return;
+                const square = squareFromEvent(event);
+                handleSquareSelection(square);
             });
         }
 
@@ -1101,20 +1156,58 @@
            Mobile touch handling - prevent page scrolling on board
         -------------------------------------------------- */
         function preventMobileScrolling() {
+            if (touchHandlersBound) return;
             const boardNode = document.getElementById('board');
-            
-            // Prevent default touch behaviors on the board
-            boardNode.addEventListener('touchstart', function(e) {
-                e.preventDefault();
+            if (!boardNode) return;
+
+            touchHandlersBound = true;
+            let activeTouchId = null;
+            let activeTouchMoved = false;
+
+            boardNode.addEventListener('touchstart', event => {
+                if (!event.changedTouches || !event.changedTouches.length) return;
+                const touch = event.changedTouches[0];
+                activeTouchId = touch.identifier;
+                activeTouchMoved = false;
+            }, { passive: true });
+
+            boardNode.addEventListener('touchmove', event => {
+                if (activeTouchId === null) return;
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    const touch = event.changedTouches[i];
+                    if (touch.identifier === activeTouchId) {
+                        activeTouchMoved = true;
+                        break;
+                    }
+                }
+                event.preventDefault();
             }, { passive: false });
-            
-            boardNode.addEventListener('touchmove', function(e) {
-                e.preventDefault();
+
+            boardNode.addEventListener('touchend', event => {
+                if (activeTouchId === null) return;
+                let handledTouch = false;
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    const touch = event.changedTouches[i];
+                    if (touch.identifier === activeTouchId) {
+                        handledTouch = true;
+                        if (!activeTouchMoved && canInteractWithBoard()) {
+                            const square = squareFromCoords(touch.clientX, touch.clientY);
+                            handleSquareSelection(square);
+                        }
+                        break;
+                    }
+                }
+                if (handledTouch) {
+                    activeTouchId = null;
+                    activeTouchMoved = false;
+                }
+                event.preventDefault();
             }, { passive: false });
-            
-            boardNode.addEventListener('touchend', function(e) {
-                e.preventDefault();
-            }, { passive: false });
+
+            boardNode.addEventListener('touchcancel', () => {
+                activeTouchId = null;
+                activeTouchMoved = false;
+            });
         }
 
         // Apply mobile touch handling after a short delay to ensure board is rendered
@@ -1124,16 +1217,17 @@
            Drag callbacks
         -------------------------------------------------- */
         function onDragStart(src, piece) {
-            clearHighlights();
             if (historyIndex !== history.length - 1) return false;
             if (chess.game_over()) return false;
 
             const pieceColor = piece[0];
             const turn = chess.turn();
-            if ((turn === 'w' && pieceColor === 'b') || (turn === 'b' && pieceColor === 'w')) {
+            const isOwnPiece = (turn === 'w' && pieceColor === 'w') || (turn === 'b' && pieceColor === 'b');
+            if (!isOwnPiece) {
                 return false;
             }
 
+            clearHighlights();
             highlightMoves(src);
         }
 
@@ -1141,6 +1235,15 @@
             const success = handlePlayerMove(src, tgt, { updateBoard: false });
             if (!success) return 'snapback';
         }
+
+        boardElement?.addEventListener('mousedown', event => {
+            // Prevent dragging an opponent piece from blocking click detection
+            const square = squareFromElement(event.target);
+            if (!square) return;
+            const piece = chess.get(square);
+            if (!piece || piece.color === chess.turn()) return;
+            event.preventDefault();
+        });
 
         /* --------------------------------------------------
            Engine move logic with randomness
