@@ -22,6 +22,11 @@
             --accent: #3b3b3b;
         }
 
+        html,
+        body {
+            height: 100%;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -35,6 +40,7 @@
             flex-direction: column;
             align-items: center;
             color: var(--text);
+            overflow-x: hidden;
         }
 
         .app-wrapper {
@@ -360,7 +366,8 @@
         }
 
         #board {
-            width: min(520px, 96vw);
+            width: min(75vw, 75vh);
+            height: min(75vw, 75vh);
             margin: 0;
             /* Prevent scrolling/panning on mobile when dragging pieces */
             touch-action: none;
@@ -400,9 +407,31 @@
             border: 3px solid rgba(64, 64, 64, 0.85);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+            body {
+                align-items: stretch;
+            }
+
+            #game {
+                width: 100vw;
+                margin: 0;
+                padding: clamp(0.75rem, 3vw, 1.25rem) 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: clamp(0.75rem, 3vw, 1.25rem);
+            }
+
             #board {
-                width: min(520px, 98vw);
+                margin: 0;
+            }
+
+            #historyControls,
+            #status,
+            #streamingMessage {
+                padding: 0 clamp(0.75rem, 4vw, 1.5rem);
+                text-align: center;
             }
         }
 
@@ -410,7 +439,6 @@
             font-size: 1.125rem;
             text-align: center;
         }
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -423,11 +451,14 @@
         }
         .modal-content {
             background: #fff;
-            margin: 15% auto;
-            padding: 1rem;
-            border-radius: 8px;
-            max-width: 400px;
+            margin: 10vh auto;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            width: min(90vw, 420px);
+            max-height: min(85vh, 520px);
+            overflow-y: auto;
             position: relative;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
         }
         .modal-content .close {
             position: absolute;
@@ -435,6 +466,20 @@
             right: 1rem;
             font-size: 1.5rem;
             cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                margin: 6vh auto;
+                padding: clamp(1rem, 4vw, 1.5rem);
+                border-radius: 10px;
+                width: min(94vw, 420px);
+            }
+
+            .modal-content .close {
+                top: 0.35rem;
+                right: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -711,7 +756,11 @@
             const gameShell = document.getElementById('game');
             if (gameShell) gameShell.style.display = 'flex';
             const boardEl = document.getElementById('board');
-            if (boardEl) boardEl.style.display = 'block';
+            if (boardEl) {
+                boardEl.style.display = 'block';
+                resizeBoard();
+                centerBoard();
+            }
             const statusEl = document.getElementById('status');
             if (statusEl) statusEl.style.display = 'none';
             if (streamingMessage) {
@@ -770,7 +819,11 @@
             const gameShell = document.getElementById('game');
             const boardEl = document.getElementById('board');
             if (gameShell) gameShell.style.display = 'flex';
-            if (boardEl) boardEl.style.display = 'block';
+            if (boardEl) {
+                boardEl.style.display = 'block';
+                resizeBoard();
+                centerBoard();
+            }
             if (inGameBrand) inGameBrand.style.display = 'flex';
             if (streamingMessage) streamingMessage.style.display = isStreaming ? 'block' : 'none';
             updateStatus();
@@ -865,6 +918,27 @@
             onDrop,
             onSnapEnd: () => board.position(chess.fen())
         });
+
+        function resizeBoard() {
+            requestAnimationFrame(() => board.resize());
+        }
+
+        function centerBoard(behavior = 'auto') {
+            if (!boardElement || !window.matchMedia) return;
+            if (window.matchMedia('(orientation: landscape)').matches) {
+                boardElement.scrollIntoView({ behavior, block: 'center' });
+            }
+        }
+
+        window.addEventListener('resize', resizeBoard);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                resizeBoard();
+                centerBoard('smooth');
+            }, 160);
+        });
+
+        resizeBoard();
 
         function getSquareElement(square) {
             if (!boardElement) return null;
