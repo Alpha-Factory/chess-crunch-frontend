@@ -360,7 +360,7 @@
         }
 
         #board {
-            width: min(520px, 90vw);
+            width: min(520px, 96vw);
             margin: 0;
             /* Prevent scrolling/panning on mobile when dragging pieces */
             touch-action: none;
@@ -370,6 +370,12 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+
+        @media (max-width: 600px) {
+            #board {
+                width: min(520px, 98vw);
+            }
         }
 
         #status {
@@ -688,12 +694,11 @@
 
             try {
                 // stream positions via WebSocket
-                // user-provided backend tunnel host (e.g. via localtunnel/ngrok)
-                // const BACKEND_HOST = 'localhost:8000';
-                const BACKEND_HOST = 'chesscrunch.com';
-                // use secure WebSocket when served over HTTPS
+                const BACKEND_HOST = window.__CHESSCRUNCH_BACKEND__ || window.location.host;
+                const API_PREFIX = window.__CHESSCRUNCH_API_PREFIX__ || '/api';
                 const wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-                const sock = new WebSocket(`${wsProto}${BACKEND_HOST}/ws/generate_board`);
+                const socketUrl = `${wsProto}${BACKEND_HOST}${API_PREFIX}/ws/generate_board`;
+                const sock = new WebSocket(socketUrl);
                 sock.onopen = () => sock.send(JSON.stringify({ target, elo, min_plies: minPlies, max_plies: maxPlies }));
                 let first = true;
                 sock.onmessage = e => {
