@@ -948,7 +948,7 @@
         window.addEventListener('resize', () => {
             resizeBoard();
             const brand = document.querySelector('.brand-logo');
-            if (brand) console.log('[Debug] brand width', brand.offsetWidth);
+            // Debug log removed for production
         });
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
