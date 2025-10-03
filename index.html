@@ -117,7 +117,17 @@
             text-align: center;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
+            .setup-shell {
+                justify-content: center;
+                align-items: center;
+            }
+
+            .setup-logo,
+            .setup-filler {
+                display: none;
+            }
+
             h1 {
                 display: none;
             }
@@ -525,9 +535,8 @@
             border: 3px solid rgba(64, 64, 64, 0.85);
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             #historyControls,
-            #status,
             #streamingMessage {
                 padding: 0 clamp(0.75rem, 4vw, 1.5rem);
                 text-align: center;
@@ -568,9 +577,28 @@
         }
 
         #status {
-            font-size: 1.125rem;
+            margin: 0;
+            padding: 1rem 1.5rem;
+            max-width: min(28rem, 82vw);
+            border: 2px solid rgba(20, 20, 20, 0.2);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(230, 230, 230, 0.9) 100%);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.12);
+            font-size: clamp(1rem, 2.4vw, 1.25rem);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            line-height: 1.6;
             text-align: center;
+            color: var(--heading);
             overflow-wrap: anywhere;
+            text-wrap: balance;
+        }
+
+        @media (max-width: 900px) {
+            #status {
+                padding: clamp(0.85rem, 4vw, 1.25rem) clamp(0.9rem, 5vw, 1.6rem);
+                max-width: min(24rem, 90vw);
+            }
         }
         .modal {
             display: none;
