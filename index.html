@@ -391,44 +391,57 @@
             display: none;
             width: 100%;
             min-height: 100dvh;
-            padding: clamp(1rem, 3vw, 2.5rem) clamp(1rem, 4vw, 2.5rem);
+            padding: clamp(0.5rem, 3vw, 2rem);
             box-sizing: border-box;
             flex-direction: column;
-            align-items: center;
-        }
-
-        .game-shell {
-            width: min(96vw, 1100px);
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: clamp(1rem, 3vw, 2.5rem);
-            min-height: 100%;
-            flex: 1 1 auto;
             align-items: stretch;
         }
 
-        .game-stage {
-            flex: 1 1 auto;
+        .game-shell {
+            width: 100%;
+            min-height: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            gap: clamp(1rem, 3vw, 2.5rem);
+            align-items: stretch;
+            justify-items: stretch;
+        }
+
+        .game-logo,
+        .game-board,
+        .game-controls {
+            width: 100%;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: clamp(0.75rem, 3vw, 1.5rem);
-            margin: auto;
-            width: fit-content;
-            max-width: 100%;
+        }
+
+        .game-board {
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .game-controls {
+            flex-direction: column;
+            gap: clamp(0.75rem, 3vw, 1.75rem);
+            text-align: center;
         }
 
         .board-shell {
             width: 100%;
             display: flex;
+            align-items: center;
             justify-content: center;
         }
 
         #board {
-            width: min(75vw, 75vh);
-            height: min(75vw, 75vh);
+            width: min(100vw, 100vh);
+            width: min(100vw, 100dvh);
+            height: min(100vw, 100vh);
+            height: min(100vw, 100dvh);
+            max-width: min(100vw, 100dvh);
+            max-height: min(100vw, 100dvh);
             margin: 0;
             /* Prevent scrolling/panning on mobile when dragging pieces */
             touch-action: none;
@@ -469,22 +482,6 @@
         }
 
         @media (max-width: 768px) {
-            body {
-                align-items: stretch;
-            }
-
-            #game {
-                padding: clamp(0.75rem, 3vw, 1.5rem) clamp(0.75rem, 4vw, 1.75rem);
-            }
-
-            .board-shell {
-                width: 100%;
-            }
-
-            #board {
-                margin: 0;
-            }
-
             #historyControls,
             #status,
             #streamingMessage {
@@ -495,13 +492,8 @@
 
         @media (orientation: landscape) {
             .game-shell {
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .game-stage {
-                margin: auto;
+                grid-template-rows: minmax(0, 1fr);
+                grid-template-columns: auto minmax(0, 1fr) auto;
             }
 
             .brand--game {
@@ -514,8 +506,8 @@
         }
 
         @media (orientation: portrait) {
-            .game-stage {
-                width: 100%;
+            .game-shell {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -663,16 +655,20 @@
 
     <div id="game">
         <div class="game-shell">
-            <div class="brand brand--game" id="inGameBrand" style="display: none;">
-                <picture>
-                    <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
-                    <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
-                </picture>
+            <div class="game-logo">
+                <div class="brand brand--game" id="inGameBrand" style="display: none;">
+                    <picture>
+                        <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
+                        <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
+                    </picture>
+                </div>
             </div>
-            <div class="game-stage">
+            <div class="game-board">
                 <div class="board-shell">
                     <div id="board" style="display: none;"></div>
                 </div>
+            </div>
+            <div class="game-controls">
                 <p id="streamingMessage" class="loading-message" style="display: none;">Streaming positions... please hang tight</p>
                 <div class="history-controls" id="historyControls" style="display: none;">
                     <button type="button" class="history-btn" id="historyPrev" aria-label="Previous move" disabled>
