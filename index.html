@@ -702,6 +702,22 @@
             updateStatus();
         }
 
+        function finalizeStreamHistory(finalFen) {
+            if (!finalFen || !history.length) {
+                return;
+            }
+            const firstFinalIndex = history.indexOf(finalFen);
+            if (firstFinalIndex === -1) {
+                return;
+            }
+            const desiredLength = firstFinalIndex + 1;
+            if (history.length > desiredLength) {
+                history.splice(desiredLength);
+            }
+            historyIndex = history.length ? history.length - 1 : 0;
+            updateHistoryControls();
+        }
+
         function setColourSelection(value) {
             colourSelection = value;
             colourButtons.forEach(btn => {
@@ -808,6 +824,7 @@
                 };
                 sock.onclose = () => {
                     // after streaming, show next turn and start engine
+                    finalizeStreamHistory(chess.fen());
                     isStreaming = false;
                     updateStatus();
                     startGameEngine();
