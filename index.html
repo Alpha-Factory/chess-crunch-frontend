@@ -44,6 +44,7 @@
             background: var(--bg);
             margin: 0;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -61,16 +62,30 @@
         }
 
         .brand {
-            align-self: center;
             display: flex;
             justify-content: center;
             margin: 0.02rem 0;
         }
 
+        .app-wrapper > .brand {
+            align-self: center;
+        }
+
         .brand-logo {
-            width: clamp(180px, 44vw, 240px);
+            width: clamp(190px, 48vw, 320px);
             height: auto;
             display: block;
+        }
+
+        .brand--game {
+            display: none;
+            flex: 1 1 0;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand--game .brand-logo {
+            width: clamp(150px, 32vw, 240px);
         }
 
         h1 {
@@ -374,11 +389,36 @@
 
         #game {
             display: none;
-            width: min(90vw, 560px);
-            margin: 0 auto 1.5rem;
+            width: 100%;
+            min-height: 100dvh;
+            padding: clamp(1rem, 3vw, 2.5rem) clamp(1rem, 4vw, 2.5rem);
+            box-sizing: border-box;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+        }
+
+        .game-shell {
+            width: min(96vw, 1100px);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(1rem, 3vw, 2.5rem);
+            min-height: 100%;
+            flex: 1 1 auto;
+        }
+
+        .game-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(0.75rem, 3vw, 1.5rem);
+            margin-block: auto;
+        }
+
+        .board-shell {
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         #board {
@@ -429,15 +469,11 @@
             }
 
             #game {
-                width: 100vw;
-                margin: 0;
-                padding: 0;
-                padding-bottom: clamp(0.75rem, 3vw, 1.25rem);
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: clamp(0.75rem, 3vw, 1.25rem);
+                padding: clamp(0.75rem, 3vw, 1.5rem) clamp(0.75rem, 4vw, 1.75rem);
+            }
+
+            .board-shell {
+                width: 100%;
             }
 
             #board {
@@ -449,6 +485,33 @@
             #streamingMessage {
                 padding: 0 clamp(0.75rem, 4vw, 1.5rem);
                 text-align: center;
+            }
+        }
+
+        @media (orientation: landscape) {
+            .game-shell {
+                flex-direction: row;
+                align-items: stretch;
+                justify-content: center;
+            }
+
+            .game-stage {
+                flex: 1 1 auto;
+                margin: auto;
+            }
+
+            .brand--game {
+                max-width: clamp(160px, 22vw, 260px);
+            }
+
+            .brand--game .brand-logo {
+                width: clamp(140px, 18vw, 220px);
+            }
+        }
+
+        @media (orientation: portrait) {
+            .game-stage {
+                width: 100%;
             }
         }
 
@@ -511,7 +574,10 @@
     <!-- End Google Tag Manager (noscript) -->
     <div class="app-wrapper">
         <div class="brand">
-            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch">
+            <picture>
+                <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
+                <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
+            </picture>
         </div>
         <h1>Game Setup</h1>
 
@@ -592,21 +658,30 @@
     </div>
 
     <div id="game">
-        <div class="brand" id="inGameBrand" style="display: none;">
-            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch">
+        <div class="game-shell">
+            <div class="brand brand--game" id="inGameBrand" style="display: none;">
+                <picture>
+                    <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
+                    <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
+                </picture>
+            </div>
+            <div class="game-stage">
+                <div class="board-shell">
+                    <div id="board" style="display: none;"></div>
+                </div>
+                <p id="streamingMessage" class="loading-message" style="display: none;">Streaming positions... please hang tight</p>
+                <div class="history-controls" id="historyControls" style="display: none;">
+                    <button type="button" class="history-btn" id="historyPrev" aria-label="Previous move" disabled>
+                        <span aria-hidden="true">←</span>
+                    </button>
+                    <span class="history-indicator" id="historyIndicator">Move 0 / 0</span>
+                    <button type="button" class="history-btn" id="historyNext" aria-label="Next move" disabled>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+                <p id="status" style="display: none;"></p>
+            </div>
         </div>
-        <div id="board" style="display: none;"></div>
-        <p id="streamingMessage" class="loading-message" style="display: none;">Streaming positions... please hang tight</p>
-        <div class="history-controls" id="historyControls" style="display: none;">
-            <button type="button" class="history-btn" id="historyPrev" aria-label="Previous move" disabled>
-                <span aria-hidden="true">←</span>
-            </button>
-            <span class="history-indicator" id="historyIndicator">Move 0 / 0</span>
-            <button type="button" class="history-btn" id="historyNext" aria-label="Next move" disabled>
-                <span aria-hidden="true">→</span>
-            </button>
-        </div>
-        <p id="status" style="display: none;"></p>
     </div>
 
     <script>
