@@ -405,14 +405,19 @@
             gap: clamp(1rem, 3vw, 2.5rem);
             min-height: 100%;
             flex: 1 1 auto;
+            align-items: stretch;
         }
 
         .game-stage {
+            flex: 1 1 auto;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: clamp(0.75rem, 3vw, 1.5rem);
-            margin-block: auto;
+            margin: auto;
+            width: fit-content;
+            max-width: 100%;
         }
 
         .board-shell {
@@ -491,12 +496,11 @@
         @media (orientation: landscape) {
             .game-shell {
                 flex-direction: row;
-                align-items: stretch;
+                align-items: center;
                 justify-content: center;
             }
 
             .game-stage {
-                flex: 1 1 auto;
                 margin: auto;
             }
 
