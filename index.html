@@ -51,28 +51,36 @@
 
         .setup-shell {
             width: 100vw;
-            min-height: 100dvh;
+            height: 100dvh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: clamp(1.5rem, 4vw, 3rem);
-            padding: clamp(1.5rem, 4vw, 3.5rem);
-            box-sizing: border-box;
+            flex-direction: row;
         }
 
         .setup-logo,
-        .setup-main {
+        .setup-main,
+        .setup-filler {
+            flex: 1 1 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
+            min-width: 0;
+            min-height: 0;
         }
 
         .setup-main {
+            flex: 0 0 auto;
+            width: min(90vw, 560px);
+            max-width: min(90vw, 560px);
+            padding: clamp(1.5rem, 4vw, 3.5rem);
+            box-sizing: border-box;
             flex-direction: column;
             gap: clamp(1.25rem, 4vw, 2.75rem);
-            width: min(90vw, 560px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .setup-logo {
+            padding: clamp(1.5rem, 4vw, 3.5rem);
         }
 
         .brand {
@@ -111,24 +119,19 @@
             }
         }
 
-        @media (orientation: landscape) {
+        @media (orientation: portrait) {
             .setup-shell {
-                flex-direction: row;
-                align-items: stretch;
+                flex-direction: column;
             }
 
             .setup-logo,
-            .setup-main {
-                height: 100%;
-            }
-
-            .setup-logo {
-                flex: 1 1 0;
+            .setup-filler {
+                padding: clamp(1.5rem, 6vw, 4rem);
             }
 
             .setup-main {
-                width: min(55vw, 560px);
-                flex: 0 1 auto;
+                width: min(92vw, 560px);
+                max-width: min(92vw, 560px);
             }
         }
 
@@ -698,6 +701,7 @@
                 <button id="generateBtn" class="start-button">Start Game</button>
             </div>
         </div>
+        <div class="setup-filler" aria-hidden="true"></div>
     </div>
     <!-- Error modal -->
     <div class="modal" id="errorModal">
