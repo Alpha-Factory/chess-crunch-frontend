@@ -132,6 +132,11 @@
             h1 {
                 display: none;
             }
+
+            .setup-main {
+                width: 100vw;
+                max-width: 100vw;
+            }
         }
 
         @media (orientation: portrait) {
@@ -143,7 +148,9 @@
             .setup-filler {
                 padding: clamp(1.5rem, 6vw, 4rem);
             }
+        }
 
+        @media (orientation: portrait) and (min-width: 901px) {
             .setup-main {
                 width: min(92vw, 560px);
                 max-width: min(92vw, 560px);
