@@ -45,30 +45,40 @@
             margin: 0;
             min-height: 100vh;
             min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             color: var(--text);
             overflow-x: hidden;
         }
 
-        .app-wrapper {
-            width: min(90vw, 560px);
-            margin: 0 auto 1.5rem;
+        .setup-shell {
+            width: 100vw;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+            justify-content: center;
+            gap: clamp(1.5rem, 4vw, 3rem);
+            padding: clamp(1.5rem, 4vw, 3.5rem);
+            box-sizing: border-box;
+        }
+
+        .setup-logo,
+        .setup-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .setup-main {
+            flex-direction: column;
+            gap: clamp(1.25rem, 4vw, 2.75rem);
+            width: min(90vw, 560px);
         }
 
         .brand {
             display: flex;
             justify-content: center;
             margin: 0.02rem 0;
-        }
-
-        .app-wrapper > .brand {
-            align-self: center;
         }
 
         .brand-logo {
@@ -98,6 +108,27 @@
         @media (max-width: 600px) {
             h1 {
                 display: none;
+            }
+        }
+
+        @media (orientation: landscape) {
+            .setup-shell {
+                flex-direction: row;
+                align-items: stretch;
+            }
+
+            .setup-logo,
+            .setup-main {
+                height: 100%;
+            }
+
+            .setup-logo {
+                flex: 1 1 0;
+            }
+
+            .setup-main {
+                width: min(55vw, 560px);
+                flex: 0 1 auto;
             }
         }
 
@@ -587,34 +618,37 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KDCV76T9"
             height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-    <div class="app-wrapper">
-        <div class="brand">
-            <picture>
-                <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
-                <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
-            </picture>
+    <div class="setup-shell" id="setup">
+        <div class="setup-logo">
+            <div class="brand">
+                <picture>
+                    <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
+                    <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
+                </picture>
+            </div>
         </div>
-        <h1>Game Setup</h1>
+        <div class="setup-main">
+            <h1>Game Setup</h1>
 
-        <div class="setup-card">
-            <div class="controls">
-                <div class="control-group">
-                    <label for="playerColourRandom">Colour</label>
-                    <div class="colour-choice-grid" role="radiogroup" aria-label="Choose your side">
-                        <button type="button" class="colour-choice" data-value="white" aria-pressed="false">
-                            <img src="assets/white.png" alt="Play as white">
-                            <span>White</span>
-                        </button>
-                        <button type="button" class="colour-choice active" data-value="random" id="playerColourRandom" aria-pressed="true">
-                            <img src="assets/random.png" alt="Random side icon">
-                            <span>Random</span>
-                        </button>
-                        <button type="button" class="colour-choice" data-value="black" aria-pressed="false">
-                            <img src="assets/black.png" alt="Play as black">
-                            <span>Black</span>
-                        </button>
+            <div class="setup-card">
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="playerColourRandom">Colour</label>
+                        <div class="colour-choice-grid" role="radiogroup" aria-label="Choose your side">
+                            <button type="button" class="colour-choice" data-value="white" aria-pressed="false">
+                                <img src="assets/white.png" alt="Play as white">
+                                <span>White</span>
+                            </button>
+                            <button type="button" class="colour-choice active" data-value="random" id="playerColourRandom" aria-pressed="true">
+                                <img src="assets/random.png" alt="Random side icon">
+                                <span>Random</span>
+                            </button>
+                            <button type="button" class="colour-choice" data-value="black" aria-pressed="false">
+                                <img src="assets/black.png" alt="Play as black">
+                                <span>Black</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
                 <div class="control-group">
                     <label for="advantage">Starting position</label>
@@ -659,9 +693,10 @@
                     <input type="hidden" id="minPlies" value="16">
                     <input type="hidden" id="maxPlies" value="60">
                 </div>
-            </div>
+                </div>
 
-            <button id="generateBtn" class="start-button">Start Game</button>
+                <button id="generateBtn" class="start-button">Start Game</button>
+            </div>
         </div>
     </div>
     <!-- Error modal -->
@@ -890,7 +925,7 @@
             resetHistory(chess.fen());
 
             // hide controls container and show board
-            const setupWrapper = document.querySelector('.app-wrapper');
+            const setupWrapper = document.querySelector('.setup-shell');
             if (setupWrapper) setupWrapper.style.display = 'none';
             const gameShell = document.getElementById('game');
             if (gameShell) gameShell.style.display = 'flex';
