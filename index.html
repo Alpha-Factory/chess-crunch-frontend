@@ -457,7 +457,7 @@
         }
 
         .game-shell {
-            --board-size: min(100vw, 100dvh);
+            --board-size: min(700px, 100vw, 100dvh);
             width: 100vw;
             height: 100dvh;
             display: grid;
@@ -553,10 +553,11 @@
 
         @media (orientation: landscape) {
             .game-shell {
-                grid-template-rows: minmax(0, var(--board-size));
+                grid-template-rows: minmax(0, 1fr);
                 grid-template-columns: max(0px, calc((100vw - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100vw - var(--board-size)) / 2));
             }
 
+            .game-board,
             .game-logo,
             .game-controls {
                 width: 100%;
