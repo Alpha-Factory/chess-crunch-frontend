@@ -398,14 +398,16 @@
         }
 
         .game-shell {
+            --board-size: min(100vw, 100dvh);
             width: 100%;
             min-height: 100%;
             margin: 0 auto;
             display: grid;
-            grid-template-rows: auto minmax(0, 1fr) auto;
             gap: clamp(1rem, 3vw, 2.5rem);
-            align-items: stretch;
-            justify-items: stretch;
+            align-items: center;
+            justify-items: center;
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: max(0px, calc((100dvh - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100dvh - var(--board-size)) / 2));
         }
 
         .game-logo,
@@ -424,8 +426,10 @@
 
         .game-controls {
             flex-direction: column;
+            justify-content: center;
             gap: clamp(0.75rem, 3vw, 1.75rem);
             text-align: center;
+            max-width: 100%;
         }
 
         .board-shell {
@@ -436,12 +440,10 @@
         }
 
         #board {
-            width: min(100vw, 100vh);
-            width: min(100vw, 100dvh);
-            height: min(100vw, 100vh);
-            height: min(100vw, 100dvh);
-            max-width: min(100vw, 100dvh);
-            max-height: min(100vw, 100dvh);
+            width: var(--board-size);
+            height: var(--board-size);
+            max-width: var(--board-size);
+            max-height: var(--board-size);
             margin: 0;
             /* Prevent scrolling/panning on mobile when dragging pieces */
             touch-action: none;
@@ -493,7 +495,14 @@
         @media (orientation: landscape) {
             .game-shell {
                 grid-template-rows: minmax(0, 1fr);
-                grid-template-columns: auto minmax(0, 1fr) auto;
+                grid-template-columns: max(0px, calc((100vw - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100vw - var(--board-size)) / 2));
+            }
+
+            .game-logo,
+            .game-controls {
+                min-width: max(0px, calc((100vw - var(--board-size)) / 2));
+                max-width: max(0px, calc((100vw - var(--board-size)) / 2));
+                height: 100%;
             }
 
             .brand--game {
@@ -507,13 +516,21 @@
 
         @media (orientation: portrait) {
             .game-shell {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .game-logo,
+            .game-controls {
+                min-height: max(0px, calc((100dvh - var(--board-size)) / 2));
+                max-height: max(0px, calc((100dvh - var(--board-size)) / 2));
+                width: 100%;
             }
         }
 
         #status {
             font-size: 1.125rem;
             text-align: center;
+            overflow-wrap: anywhere;
         }
         .modal {
             display: none;
