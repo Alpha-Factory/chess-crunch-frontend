@@ -44,33 +44,70 @@
             background: var(--bg);
             margin: 0;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            min-height: 100dvh;
             color: var(--text);
             overflow-x: hidden;
         }
 
-        .app-wrapper {
-            width: min(90vw, 560px);
-            margin: 0 auto 1.5rem;
+        .setup-shell {
+            width: 100vw;
+            height: 100dvh;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+        }
+
+        .setup-logo,
+        .setup-main,
+        .setup-filler {
+            flex: 1 1 0;
+            display: flex;
             align-items: center;
-            gap: 1rem;
+            justify-content: center;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .setup-main {
+            flex: 0 0 auto;
+            width: min(90vw, 560px);
+            max-width: min(90vw, 560px);
+            padding: clamp(1.5rem, 4vw, 3.5rem);
+            box-sizing: border-box;
+            flex-direction: column;
+            gap: clamp(1.25rem, 4vw, 2.75rem);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .setup-logo {
+            padding: clamp(1.5rem, 4vw, 3.5rem);
+        }
+
+        .setup-filler {
+            padding: clamp(1.5rem, 4vw, 3.5rem);
         }
 
         .brand {
-            align-self: center;
             display: flex;
             justify-content: center;
             margin: 0.02rem 0;
         }
 
         .brand-logo {
-            width: clamp(180px, 44vw, 240px);
+            width: clamp(190px, 48vw, 320px);
             height: auto;
             display: block;
+        }
+
+        .brand--game {
+            display: none;
+            flex: 1 1 0;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand--game .brand-logo {
+            width: clamp(150px, 32vw, 240px);
         }
 
         h1 {
@@ -80,9 +117,43 @@
             text-align: center;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
+            .setup-shell {
+                justify-content: center;
+                align-items: center;
+                padding-top: clamp(1.5rem, 8vw, 3rem);
+            }
+
+            .setup-logo,
+            .setup-filler {
+                display: none;
+            }
+
             h1 {
                 display: none;
+            }
+
+            .setup-main {
+                width: 100vw;
+                max-width: 100vw;
+            }
+        }
+
+        @media (orientation: portrait) {
+            .setup-shell {
+                flex-direction: column;
+            }
+
+            .setup-logo,
+            .setup-filler {
+                padding: clamp(1.5rem, 6vw, 4rem);
+            }
+        }
+
+        @media (orientation: portrait) and (min-width: 901px) {
+            .setup-main {
+                width: min(92vw, 560px);
+                max-width: min(92vw, 560px);
             }
         }
 
@@ -374,16 +445,65 @@
 
         #game {
             display: none;
-            width: min(90vw, 560px);
-            margin: 0 auto 1.5rem;
+            width: 100vw;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .game-shell {
+            --board-size: min(100vw, 100dvh);
+            width: 100vw;
+            height: 100dvh;
+            display: grid;
+            gap: 0;
+            align-items: stretch;
+            justify-items: stretch;
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: max(0px, calc((100dvh - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100dvh - var(--board-size)) / 2));
+        }
+
+        .game-logo,
+        .game-board,
+        .game-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .game-logo {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .game-controls {
+            flex-direction: column;
+            gap: clamp(0.75rem, 3vw, 1.75rem);
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .board-shell {
+            width: var(--board-size);
+            height: var(--board-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #board {
-            width: min(75vw, 75vh);
-            height: min(75vw, 75vh);
+            width: var(--board-size);
+            height: var(--board-size);
+            max-width: var(--board-size);
+            max-height: var(--board-size);
             margin: 0;
             /* Prevent scrolling/panning on mobile when dragging pieces */
             touch-action: none;
@@ -423,38 +543,70 @@
             border: 3px solid rgba(64, 64, 64, 0.85);
         }
 
-        @media (max-width: 768px) {
-            body {
-                align-items: stretch;
-            }
-
-            #game {
-                width: 100vw;
-                margin: 0;
-                padding: 0;
-                padding-bottom: clamp(0.75rem, 3vw, 1.25rem);
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: clamp(0.75rem, 3vw, 1.25rem);
-            }
-
-            #board {
-                margin: 0;
-            }
-
+        @media (max-width: 900px) {
             #historyControls,
-            #status,
             #streamingMessage {
                 padding: 0 clamp(0.75rem, 4vw, 1.5rem);
                 text-align: center;
             }
         }
 
+        @media (orientation: landscape) {
+            .game-shell {
+                grid-template-rows: minmax(0, var(--board-size));
+                grid-template-columns: max(0px, calc((100vw - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100vw - var(--board-size)) / 2));
+            }
+
+            .game-logo,
+            .game-controls {
+                width: 100%;
+                height: 100%;
+            }
+
+            .brand--game {
+                max-width: clamp(160px, 22vw, 260px);
+            }
+
+            .brand--game .brand-logo {
+                width: clamp(140px, 18vw, 220px);
+            }
+        }
+
+        @media (orientation: portrait) {
+            .game-shell {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .game-logo,
+            .game-controls {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
         #status {
-            font-size: 1.125rem;
+            margin: 0;
+            padding: 1rem 1.5rem;
+            max-width: min(28rem, 82vw);
+            border: 2px solid rgba(20, 20, 20, 0.2);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(230, 230, 230, 0.9) 100%);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.12);
+            font-size: clamp(1rem, 2.4vw, 1.25rem);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            line-height: 1.6;
             text-align: center;
+            color: var(--heading);
+            overflow-wrap: anywhere;
+            text-wrap: balance;
+        }
+
+        @media (max-width: 900px) {
+            #status {
+                padding: clamp(0.85rem, 4vw, 1.25rem) clamp(0.9rem, 5vw, 1.6rem);
+                max-width: min(24rem, 90vw);
+            }
         }
         .modal {
             display: none;
@@ -509,31 +661,37 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KDCV76T9"
             height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-    <div class="app-wrapper">
-        <div class="brand">
-            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch">
+    <div class="setup-shell" id="setup">
+        <div class="setup-logo">
+            <div class="brand">
+                <picture>
+                    <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
+                    <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
+                </picture>
+            </div>
         </div>
-        <h1>Game Setup</h1>
+        <div class="setup-main">
+            <h1>Game Setup</h1>
 
-        <div class="setup-card">
-            <div class="controls">
-                <div class="control-group">
-                    <label for="playerColourRandom">Colour</label>
-                    <div class="colour-choice-grid" role="radiogroup" aria-label="Choose your side">
-                        <button type="button" class="colour-choice" data-value="white" aria-pressed="false">
-                            <img src="assets/white.png" alt="Play as white">
-                            <span>White</span>
-                        </button>
-                        <button type="button" class="colour-choice active" data-value="random" id="playerColourRandom" aria-pressed="true">
-                            <img src="assets/random.png" alt="Random side icon">
-                            <span>Random</span>
-                        </button>
-                        <button type="button" class="colour-choice" data-value="black" aria-pressed="false">
-                            <img src="assets/black.png" alt="Play as black">
-                            <span>Black</span>
-                        </button>
+            <div class="setup-card">
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="playerColourRandom">Colour</label>
+                        <div class="colour-choice-grid" role="radiogroup" aria-label="Choose your side">
+                            <button type="button" class="colour-choice" data-value="white" aria-pressed="false">
+                                <img src="assets/white.png" alt="Play as white">
+                                <span>White</span>
+                            </button>
+                            <button type="button" class="colour-choice active" data-value="random" id="playerColourRandom" aria-pressed="true">
+                                <img src="assets/random.png" alt="Random side icon">
+                                <span>Random</span>
+                            </button>
+                            <button type="button" class="colour-choice" data-value="black" aria-pressed="false">
+                                <img src="assets/black.png" alt="Play as black">
+                                <span>Black</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
                 <div class="control-group">
                     <label for="advantage">Starting position</label>
@@ -578,10 +736,12 @@
                     <input type="hidden" id="minPlies" value="16">
                     <input type="hidden" id="maxPlies" value="60">
                 </div>
-            </div>
+                </div>
 
-            <button id="generateBtn" class="start-button">Start Game</button>
+                <button id="generateBtn" class="start-button">Start Game</button>
+            </div>
         </div>
+        <div class="setup-filler" aria-hidden="true"></div>
     </div>
     <!-- Error modal -->
     <div class="modal" id="errorModal">
@@ -592,21 +752,34 @@
     </div>
 
     <div id="game">
-        <div class="brand" id="inGameBrand" style="display: none;">
-            <img class="brand-logo" src="assets/logo.png" alt="ChessCrunch">
+        <div class="game-shell">
+            <div class="game-logo">
+                <div class="brand brand--game" id="inGameBrand" style="display: none;">
+                    <picture>
+                        <source srcset="assets/chesscrush.com.svg" type="image/svg+xml">
+                        <img class="brand-logo" src="assets/chesscrush.com.png" alt="ChessCrush">
+                    </picture>
+                </div>
+            </div>
+            <div class="game-board">
+                <div class="board-shell">
+                    <div id="board" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="game-controls">
+                <p id="streamingMessage" class="loading-message" style="display: none;">Streaming positions... please hang tight</p>
+                <div class="history-controls" id="historyControls" style="display: none;">
+                    <button type="button" class="history-btn" id="historyPrev" aria-label="Previous move" disabled>
+                        <span aria-hidden="true">←</span>
+                    </button>
+                    <span class="history-indicator" id="historyIndicator">Move 0 / 0</span>
+                    <button type="button" class="history-btn" id="historyNext" aria-label="Next move" disabled>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+                <p id="status" style="display: none;"></p>
+            </div>
         </div>
-        <div id="board" style="display: none;"></div>
-        <p id="streamingMessage" class="loading-message" style="display: none;">Streaming positions... please hang tight</p>
-        <div class="history-controls" id="historyControls" style="display: none;">
-            <button type="button" class="history-btn" id="historyPrev" aria-label="Previous move" disabled>
-                <span aria-hidden="true">←</span>
-            </button>
-            <span class="history-indicator" id="historyIndicator">Move 0 / 0</span>
-            <button type="button" class="history-btn" id="historyNext" aria-label="Next move" disabled>
-                <span aria-hidden="true">→</span>
-            </button>
-        </div>
-        <p id="status" style="display: none;"></p>
     </div>
 
     <script>
@@ -796,7 +969,7 @@
             resetHistory(chess.fen());
 
             // hide controls container and show board
-            const setupWrapper = document.querySelector('.app-wrapper');
+            const setupWrapper = document.querySelector('.setup-shell');
             if (setupWrapper) setupWrapper.style.display = 'none';
             const gameShell = document.getElementById('game');
             if (gameShell) gameShell.style.display = 'flex';
