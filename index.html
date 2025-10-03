@@ -389,23 +389,25 @@
 
         #game {
             display: none;
-            width: 100%;
-            min-height: 100dvh;
-            padding: clamp(0.5rem, 3vw, 2rem);
+            width: 100vw;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
             flex-direction: column;
-            align-items: stretch;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .game-shell {
             --board-size: min(100vw, 100dvh);
-            width: 100%;
-            min-height: 100%;
-            margin: 0 auto;
+            width: 100vw;
+            height: 100dvh;
             display: grid;
-            gap: clamp(1rem, 3vw, 2.5rem);
-            align-items: center;
-            justify-items: center;
+            gap: 0;
+            align-items: stretch;
+            justify-items: stretch;
             grid-template-columns: minmax(0, 1fr);
             grid-template-rows: max(0px, calc((100dvh - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100dvh - var(--board-size)) / 2));
         }
@@ -413,27 +415,29 @@
         .game-logo,
         .game-board,
         .game-controls {
-            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .game-board {
             min-width: 0;
             min-height: 0;
         }
 
+        .game-logo {
+            flex-direction: column;
+            text-align: center;
+        }
+
         .game-controls {
             flex-direction: column;
-            justify-content: center;
             gap: clamp(0.75rem, 3vw, 1.75rem);
             text-align: center;
-            max-width: 100%;
+            width: 100%;
+            height: 100%;
         }
 
         .board-shell {
-            width: 100%;
+            width: var(--board-size);
+            height: var(--board-size);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -494,14 +498,13 @@
 
         @media (orientation: landscape) {
             .game-shell {
-                grid-template-rows: minmax(0, 1fr);
+                grid-template-rows: minmax(0, var(--board-size));
                 grid-template-columns: max(0px, calc((100vw - var(--board-size)) / 2)) minmax(0, var(--board-size)) max(0px, calc((100vw - var(--board-size)) / 2));
             }
 
             .game-logo,
             .game-controls {
-                min-width: max(0px, calc((100vw - var(--board-size)) / 2));
-                max-width: max(0px, calc((100vw - var(--board-size)) / 2));
+                width: 100%;
                 height: 100%;
             }
 
@@ -521,9 +524,8 @@
 
             .game-logo,
             .game-controls {
-                min-height: max(0px, calc((100dvh - var(--board-size)) / 2));
-                max-height: max(0px, calc((100dvh - var(--board-size)) / 2));
                 width: 100%;
+                height: 100%;
             }
         }
 
